@@ -1,5 +1,14 @@
 import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Switch, Image } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Switch,
+  FlatList,
+} from 'react-native';
 
 const FindRoom = ({ navigation }) => {
   const [stayType, setStayType] = React.useState(true); // true for 'Stay' (Hotels), false for 'Pass'
@@ -10,11 +19,58 @@ const FindRoom = ({ navigation }) => {
   const [adults, setAdults] = React.useState('');
   const [children, setChildren] = React.useState('');
   const [rooms, setRooms] = React.useState('');
+  const [selectedHotel, setSelectedHotel] = React.useState(null); // Track selected hotel
 
-  // Function to toggle fan selection
-  const toggleFan = () => {
-    setFanSelected(!fanSelected);
+  const hotelsData = [
+    { id: '1', name: 'The Loop Towers' },
+    { id: '2', name: 'N Hotel' },
+    { id: '3', name: 'FB Budgetel Suites' },
+    { id: '4', name: 'FB Dormitel' },
+    { id: '5', name: 'De Luxe Hotel' },
+    { id: '6', name: 'Ultra Winds Mountain Resort' },
+    { id: '7', name: 'Bridge Hotel' },
+    { id: '8', name: 'Miami Inn' },
+    { id: '9', name: 'Gardens of Malasag Eco-Tourism' },
+    { id: '10', name: 'Seda Centrio' },
+    { id: '11', name: 'The Pacifico Boutique Hotel' },
+    { id: '12', name: 'RedDoorz near Lapasan Plaza' },
+    { id: '13', name: 'The VIP Hotel' },
+    { id: '14', name: 'Hotel Sogo - Cagayan De Oro' },
+    { id: '15', name: 'RedDoorz @ Camaman-An' },
+    { id: '16', name: 'Chali Resort & Conference Center' },
+    { id: '17', name: 'Win Min Transient Inn' },
+    { id: '18', name: 'Red Planet Cagayan De Oro' },
+    { id: '19', name: 'Grand City Hotel' },
+    { id: '20', name: 'Mallberry Suites' },
+    { id: '21', name: 'New Dawn Hotel Plus' },
+    { id: '22', name: 'Bridge Hotel Express' },
+    { id: '23', name: 'New Dawn Pensionne' },
+    { id: '24', name: 'Demiren Hotel' },
+    { id: '25', name: 'GC Suites' },
+  ];
+
+  const handleHotelPress = (hotelName) => {
+    setSelectedHotel(hotelName); // Set the selected hotel
   };
+
+  const renderHotelItem = ({ item }) => (
+    <TouchableOpacity
+      style={[
+        styles.hotelItem,
+        selectedHotel === item.name && styles.selectedHotelItem, // Apply selected style
+      ]}
+      onPress={() => handleHotelPress(item.name)}
+    >
+      <Text
+        style={[
+          styles.hotelItemText,
+          selectedHotel === item.name && styles.selectedHotelText, // Apply selected text style
+        ]}
+      >
+        {item.name}
+      </Text>
+    </TouchableOpacity>
+  );
 
   return (
     <ScrollView style={styles.container}>
@@ -25,15 +81,22 @@ const FindRoom = ({ navigation }) => {
         <Text style={styles.switchLabel}>Pass</Text>
       </View>
 
-      {/* Hotels Tab (Villas removed) */}
+      {/* Hotels Tab */}
       <View style={styles.tabContainer}>
         <TouchableOpacity style={[styles.tab, stayType && styles.activeTab]}>
           <Text style={stayType ? styles.activeTabText : styles.tabText}>Hotels</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Location Input */}
-      <TextInput style={styles.input} placeholder="Where do you want" />
+      {/* Horizontal List of Hotel Names */}
+      <FlatList
+        data={hotelsData}
+        horizontal
+        renderItem={renderHotelItem}
+        keyExtractor={(item) => item.id}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.hotelListContainer}
+      />
 
       {/* Check-in Date & Time */}
       <TextInput
@@ -79,58 +142,26 @@ const FindRoom = ({ navigation }) => {
       {/* Fan/Air Conditioned */}
       <View style={styles.toggleContainer}>
         <TouchableOpacity
-          style={[styles.toggleOption, fanSelected && styles.activeOption]} 
-          onPress={toggleFan}
+          style={[styles.toggleOption, fanSelected && styles.activeOption]}
+          onPress={() => setFanSelected(!fanSelected)}
         >
           <Text>Fan</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.toggleOption, airConditioned && styles.activeOption]} 
+          style={[styles.toggleOption, airConditioned && styles.activeOption]}
           onPress={() => setAirConditioned(!airConditioned)}
         >
           <Text style={airConditioned ? styles.activeTabText : {}}>Air conditioned</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Search Button */}
+      {/* Pay Button */}
       <TouchableOpacity
         style={styles.searchButton}
-        onPress={() => alert(`Searching with Check-in: ${checkIn}, Check-out: ${checkOut}`)}
+        onPress={() => navigation.navigate('PaymentPage')} // Navigate to PaymentPage
       >
-        <Text style={styles.searchButtonText}>Search</Text>
+        <Text style={styles.searchButtonText}>PAY</Text>
       </TouchableOpacity>
-
-      {/* Space for Best Places / Hotels */}
-      <View style={styles.bestPlacesContainer}>
-        <Text style={styles.bestPlacesTitle}>Best Places to Stay</Text>
-
-        {/* Example Hotel 1 */}
-        <View style={styles.placeItem}>
-          <Image 
-            style={styles.placeImage} 
-            source={{ uri: 'https://your-image-url.com/hotel1.jpg' }} 
-          />
-          <Text style={styles.placeText}>Hotel Paradise</Text>
-        </View>
-
-        {/* Example Hotel 2 */}
-        <View style={styles.placeItem}>
-          <Image 
-            style={styles.placeImage} 
-            source={{ uri: 'https://your-image-url.com/hotel2.jpg' }} 
-          />
-          <Text style={styles.placeText}>Ocean View Resort</Text>
-        </View>
-
-        {/* Example Hotel 3 */}
-        <View style={styles.placeItem}>
-          <Image 
-            style={styles.placeImage} 
-            source={{ uri: 'https://your-image-url.com/hotel3.jpg' }} 
-          />
-          <Text style={styles.placeText}>Mountain Retreat</Text>
-        </View>
-      </View>
     </ScrollView>
   );
 };
@@ -154,7 +185,7 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    justifyContent: 'center', // Adjusted to center the Hotels tab
+    justifyContent: 'center',
     marginVertical: 16,
   },
   tab: {
@@ -172,6 +203,25 @@ const styles = StyleSheet.create({
   activeTabText: {
     color: '#fff',
     fontWeight: 'bold',
+  },
+  hotelListContainer: {
+    paddingVertical: 8,
+  },
+  hotelItem: {
+    backgroundColor: '#ddd',
+    padding: 12,
+    marginHorizontal: 8,
+    borderRadius: 8,
+  },
+  selectedHotelItem: {
+    backgroundColor: '#00C6AE', // Highlight background color when selected
+  },
+  hotelItemText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  selectedHotelText: {
+    color: '#fff', // Highlight text color when selected
   },
   input: {
     backgroundColor: '#fff',
@@ -198,7 +248,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ddd',
   },
   activeOption: {
-    backgroundColor: '#007BFF', // Highlighted background color
+    backgroundColor: '#007BFF',
   },
   searchButton: {
     backgroundColor: '#00C6AE',
@@ -210,31 +260,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  bestPlacesContainer: {
-    marginTop: 30, // Space between search button and best places section
-  },
-  bestPlacesTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  placeItem: {
-    flexDirection: 'row',
-    marginBottom: 15,
-    alignItems: 'center',
-  },
-  placeImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-    marginRight: 10,
-  },
-  placeText: {
-    fontSize: 18,
-    color: '#333',
   },
 });
 

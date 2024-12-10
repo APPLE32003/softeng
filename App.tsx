@@ -11,7 +11,7 @@ import WelcomePage from './WelcomePage';
 import SignInPage from './SignInPage';
 import VerifyAccountPage from './VerifyAccountPage';
 import FindRoom from './FindRoom';
-
+import PaymentPage from './PaymentPage';
 // Create the Stack Navigator
 const Stack = createStackNavigator();
 
@@ -51,6 +51,12 @@ function App() {
                     component={VerifyAccountPage}
                     options={{ title: 'Verify' }}
                 />
+                <Stack.Screen
+                    name="PaymentPage"
+                    component={PaymentPage}
+                    options={{ title: 'Payment'}}
+                />
+
 
             </Stack.Navigator>
         </NavigationContainer>
