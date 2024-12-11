@@ -1,15 +1,35 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 
 export default function SignInPage({ navigation }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [passwordVisible, setPasswordVisible] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const validateInputs = () => {
+        if (!email.includes('@')) {
+            setError('Please enter a valid email address.');
+            return false;
+        }
+        if (password.length < 6) {
+            setError('Password must be at least 6 characters.');
+            return false;
+        }
+        setError('');
+        return true;
+    };
 
     const handleSignIn = () => {
-        // Logic for signing in can go here, like calling an API to validate the credentials
-        // If successful, navigate to the VerifyAccountPage
-        navigation.navigate('VerifyAccountPage');  // Navigate to the VerifyAccountPage for identity verification
+        if (!validateInputs()) return;
+
+        setLoading(true);
+        setTimeout(() => {
+            setLoading(false);
+            navigation.navigate('VerifyAccountPage'); // Mock successful login
+        }, 2000);
     };
 
     return (
@@ -18,29 +38,43 @@ export default function SignInPage({ navigation }) {
             <View style={styles.form}>
                 <View style={styles.inputContainer}>
                     <FontAwesome name="envelope" size={20} color="#666" style={styles.icon} />
-                    <TextInput 
-                        placeholder="Email" 
-                        style={styles.input} 
-                        keyboardType="email-address" 
+                    <TextInput
+                        placeholder="Email"
+                        style={styles.input}
+                        keyboardType="email-address"
                         value={email}
                         onChangeText={setEmail}
+                        autoCapitalize="none"
                     />
                 </View>
                 <View style={styles.inputContainer}>
                     <FontAwesome name="lock" size={20} color="#666" style={styles.icon} />
-                    <TextInput 
-                        placeholder="Password" 
-                        style={styles.input} 
-                        secureTextEntry 
+                    <TextInput
+                        placeholder="Password"
+                        style={styles.input}
+                        secureTextEntry={!passwordVisible}
                         value={password}
                         onChangeText={setPassword}
                     />
+                    <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
+                        <Ionicons
+                            name={passwordVisible ? 'eye-off' : 'eye'}
+                            size={20}
+                            color="#666"
+                        />
+                    </TouchableOpacity>
                 </View>
-                <TouchableOpacity 
-                        style={styles.button}
-                        onPress={() => navigation.navigate('VerifyAccountPage')}  // Updated to match the correct screen name
+                {error ? <Text style={styles.errorText}>{error}</Text> : null}
+                <TouchableOpacity
+                    style={styles.button}
+                    onPress={handleSignIn}
+                    disabled={loading}
                 >
-                 <Text style={styles.buttonText}>Sign In</Text>
+                    {loading ? (
+                        <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                        <Text style={styles.buttonText}>Sign In</Text>
+                    )}
                 </TouchableOpacity>
                 <Text style={styles.orText}>or sign up using</Text>
                 <View style={styles.socialButtons}>
@@ -55,7 +89,10 @@ export default function SignInPage({ navigation }) {
                     By signing in, you agree to our <Text style={styles.link}>Terms</Text>
                 </Text>
                 <Text style={styles.signUpText}>
-                    Don't have an account? <Text style={styles.link} onPress={() => navigation.navigate('SignUpPage')}>Sign Up</Text>
+                    Don't have an account?{' '}
+                    <Text style={styles.link} onPress={() => navigation.navigate('SignUpPage')}>
+                        Sign Up
+                    </Text>
                 </Text>
             </View>
         </View>
@@ -112,6 +149,11 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 18,
         fontWeight: 'bold',
+    },
+    errorText: {
+        color: '#ff4d4d',
+        fontSize: 14,
+        marginBottom: 10,
     },
     orText: {
         marginVertical: 15,

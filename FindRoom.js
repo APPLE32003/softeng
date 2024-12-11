@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,20 +6,28 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Switch,
   FlatList,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Function to generate a random price between 700 and 6000
+const generateRandomPrice = () => Math.floor(Math.random() * (6000 - 700 + 1)) + 700;
+
+
+      
 
 const FindRoom = ({ navigation }) => {
-  const [stayType, setStayType] = React.useState(true); // true for 'Stay' (Hotels), false for 'Pass'
-  const [airConditioned, setAirConditioned] = React.useState(true);
-  const [fanSelected, setFanSelected] = React.useState(false); // Track fan selection
-  const [checkIn, setCheckIn] = React.useState('');
-  const [checkOut, setCheckOut] = React.useState('');
-  const [adults, setAdults] = React.useState('');
-  const [children, setChildren] = React.useState('');
-  const [rooms, setRooms] = React.useState('');
-  const [selectedHotel, setSelectedHotel] = React.useState(null); // Track selected hotel
+  const [airConditioned, setAirConditioned] = useState(true);
+  const [fanSelected, setFanSelected] = useState(false); // Track fan selection
+  const [checkIn, setCheckIn] = useState('');
+  const [checkOut, setCheckOut] = useState('');
+  const [adults, setAdults] = useState('');
+  const [children, setChildren] = useState('');
+  const [rooms, setRooms] = useState('');
+  const [selectedHotel, setSelectedHotel] = useState(null); // Track selected hotel
+  const [sortedHotels, setSortedHotels] = useState([]); // State to store the sorted hotels
+  const [isSortedAscending, setIsSortedAscending] = useState(true); // State to track sorting order
+  const [totalAmount, setTotalAmount] = useState(0); // State to store the total amount to pay
 
   const hotelsData = [
     { id: '1', name: 'The Loop Towers' },
@@ -49,48 +57,134 @@ const FindRoom = ({ navigation }) => {
     { id: '25', name: 'GC Suites' },
   ];
 
+  // Load hotels with stored prices or generate them
+  useEffect(() => {
+    const loadHotelPrices = async () => {
+      try {
+        const storedPrices = await AsyncStorage.getItem('hotelPrices');
+        if (storedPrices) {
+          // If prices are stored, parse and load them
+          setSortedHotels(JSON.parse(storedPrices));
+        } else {
+          // Otherwise, generate random prices and store them
+          const hotelsWithPrices = hotelsData.map((hotel) => ({
+            ...hotel,
+            price: generateRandomPrice(),
+          }));
+          await AsyncStorage.setItem('hotelPrices', JSON.stringify(hotelsWithPrices));
+          setSortedHotels(hotelsWithPrices);
+        }
+      } catch (error) {
+        console.error('Error loading hotel prices:', error);
+      }
+    };
+
+    loadHotelPrices();
+  }, []);
+
   const handleHotelPress = (hotelName) => {
     setSelectedHotel(hotelName); // Set the selected hotel
   };
 
-  const renderHotelItem = ({ item }) => (
-    <TouchableOpacity
-      style={[
-        styles.hotelItem,
-        selectedHotel === item.name && styles.selectedHotelItem, // Apply selected style
-      ]}
-      onPress={() => handleHotelPress(item.name)}
-    >
-      <Text
+  // Render hotel item with bed information based on price
+  const renderHotelItem = ({ item }) => {
+    // Determine bed types based on price
+    const bedInfo =
+      item.price <= 3349
+        ? '3 beds: 1 Queen size, 2 Regular beds'
+        : '4 beds: 1 Queen size, 1 King size, 2 Regular beds';
+
+    return (
+      <TouchableOpacity
         style={[
-          styles.hotelItemText,
-          selectedHotel === item.name && styles.selectedHotelText, // Apply selected text style
+          styles.hotelItem,
+          selectedHotel === item.name && styles.selectedHotelItem, // Apply selected style
         ]}
+        onPress={() => handleHotelPress(item.name)}
       >
-        {item.name}
-      </Text>
-    </TouchableOpacity>
-  );
+        <Text
+          style={[
+            styles.hotelItemText,
+            selectedHotel === item.name && styles.selectedHotelText, // Apply selected text style
+          ]}
+        >
+          {item.name} - ₱{item.price}
+        </Text>
+        <Text style={styles.bedInfoText}>{bedInfo}</Text>
+      </TouchableOpacity>
+    );
+  };
+    
+
+  // Function to sort the hotels by price (ascending or descending order)
+  const sortHotelsByPrice = () => {
+    const sorted = [...sortedHotels].sort((a, b) => {
+      if (isSortedAscending) {
+        return a.price - b.price; // Ascending order
+      } else {
+        return b.price - a.price; // Descending order
+      }
+    });
+    setSortedHotels(sorted);
+    setIsSortedAscending(!isSortedAscending); // Toggle sorting order
+  };
+
+  // Calculate the total amount to pay
+  const calculateTotalAmount = () => {
+    if (!selectedHotel || !checkIn || !checkOut) return;
+
+    // Calculate the number of days between check-in and check-out
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+    const timeDiff = checkOutDate - checkInDate;
+    const days = timeDiff / (1000 * 3600 * 24); // Convert milliseconds to days
+
+    if (days < 1) return; // Avoid invalid dates
+
+    // Get the price of the selected hotel
+    const hotel = sortedHotels.find((item) => item.name === selectedHotel);
+    const roomPrice = hotel ? hotel.price : 0;
+
+    // Additional cost for air conditioning and fan
+    let additionalCost = 0;
+    if (airConditioned && fanSelected) {
+      additionalCost = 150; // Both air-conditioned and fan
+    } else if (airConditioned) {
+      additionalCost = 100; // Air-conditioned
+    } else if (fanSelected) {
+      additionalCost = 50; // Fan only
+    }
+
+    // Calculate total price
+    const total = roomPrice + days * 300 + additionalCost;
+    setTotalAmount(total); // Update the total amount state
+  };
+  
+
+  // Trigger calculation whenever the user changes check-in, check-out, or selection
+  useEffect(() => {
+    calculateTotalAmount();
+  }, [checkIn, checkOut, airConditioned, fanSelected, selectedHotel]);
 
   return (
     <ScrollView style={styles.container}>
-      {/* Stay/Pass Switch */}
-      <View style={styles.switchContainer}>
-        <Text style={styles.switchLabel}>Stay</Text>
-        <Switch value={stayType} onValueChange={setStayType} />
-        <Text style={styles.switchLabel}>Pass</Text>
-      </View>
-
       {/* Hotels Tab */}
       <View style={styles.tabContainer}>
-        <TouchableOpacity style={[styles.tab, stayType && styles.activeTab]}>
-          <Text style={stayType ? styles.activeTabText : styles.tabText}>Hotels</Text>
+        <TouchableOpacity style={styles.activeTab}>
+          <Text style={styles.activeTabText}>Hotels</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Horizontal List of Hotel Names */}
+      {/* Sort Button to toggle sorting by price */}
+      <TouchableOpacity style={styles.sortButton} onPress={sortHotelsByPrice}>
+        <Text style={styles.sortButtonText}>
+          Sort by Price: {isSortedAscending ? 'Low to High' : 'High to Low'}
+        </Text>
+      </TouchableOpacity>
+
+      {/* Horizontal List of Hotel Names with Prices */}
       <FlatList
-        data={hotelsData}
+        data={sortedHotels}
         horizontal
         renderItem={renderHotelItem}
         keyExtractor={(item) => item.id}
@@ -101,7 +195,7 @@ const FindRoom = ({ navigation }) => {
       {/* Check-in Date & Time */}
       <TextInput
         style={styles.input}
-        placeholder="Check-in date & time (e.g., 2024-12-10 14:00)"
+        placeholder="Check-in date & time (e.g., year-month-day time)"
         value={checkIn}
         onChangeText={setCheckIn}
       />
@@ -109,7 +203,7 @@ const FindRoom = ({ navigation }) => {
       {/* Check-out Date & Time */}
       <TextInput
         style={styles.input}
-        placeholder="Check-out date & time (e.g., 2024-12-12 11:00)"
+        placeholder="Check-out date & time (e.g., year-month-day time)"
         value={checkOut}
         onChangeText={setCheckOut}
       />
@@ -155,12 +249,16 @@ const FindRoom = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
+      {/* Total Amount to Pay */}
+      <Text style={styles.totalAmountText}>Total Amount: ₱{totalAmount}</Text>
+      
+
       {/* Pay Button */}
       <TouchableOpacity
-        style={styles.searchButton}
-        onPress={() => navigation.navigate('PaymentPage')} // Navigate to PaymentPage
+      style={styles.searchButton}
+      onPress={() => navigation.navigate('PaymentPage', { totalAmount })} // Pass totalAmount as a parameter
       >
-        <Text style={styles.searchButtonText}>PAY</Text>
+      <Text style={styles.searchButtonText}>PAY</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -172,37 +270,29 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     padding: 16,
   },
-  switchContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 8,
-  },
-  switchLabel: {
-    marginHorizontal: 8,
-    fontSize: 16,
-    color: '#333',
-  },
   tabContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginVertical: 16,
   },
-  tab: {
+  activeTab: {
     padding: 12,
     borderRadius: 8,
-    backgroundColor: '#ddd',
-    alignItems: 'center',
-  },
-  activeTab: {
     backgroundColor: '#007BFF',
-  },
-  tabText: {
-    color: '#000',
   },
   activeTabText: {
     color: '#fff',
     fontWeight: 'bold',
+  },
+  sortButton: {
+    backgroundColor: '#00C6AE',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  sortButtonText: {
+    color: '#fff',
+    fontSize: 16,
   },
   hotelListContainer: {
     paddingVertical: 8,
@@ -222,6 +312,11 @@ const styles = StyleSheet.create({
   },
   selectedHotelText: {
     color: '#fff', // Highlight text color when selected
+  },
+  bedInfoText: {
+    fontSize: 12,
+    color: '#555',
+    marginTop: 4,
   },
   input: {
     backgroundColor: '#fff',
@@ -260,6 +355,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  totalAmountText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginVertical: 16,
   },
 });
 

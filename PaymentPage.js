@@ -1,11 +1,79 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Alert,
+} from 'react-native';
 
-const PaymentPage = () => {
-  const [selectedPayment, setSelectedPayment] = useState(null); // Track selected payment option
+const PaymentPage = ({ route, navigation }) => {
+  const { totalAmount } = route.params; // Retrieve totalAmount from navigation parameters
+  const [selectedPayment, setSelectedPayment] = useState(null);
+  const [paymentDetails, setPaymentDetails] = useState({
+    number: '',
+    pin: '',
+    expirationDate: '',
+    cvv: '',
+  });
+  const [amountPaid, setAmountPaid] = useState(''); // Amount the user is paying
 
   const handlePaymentOptionSelect = (option) => {
-    setSelectedPayment(option); // Set the selected payment option
+    setSelectedPayment(option);
+    setPaymentDetails({ number: '', pin: '', expirationDate: '', cvv: '' });
+  };
+
+  const handleInputChange = (field, value) => {
+    setPaymentDetails((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleAmountPaidChange = (value) => {
+    setAmountPaid(value);
+  };
+
+  const validateInputs = () => {
+    const { number, pin, expirationDate, cvv } = paymentDetails;
+
+    if (!number) {
+      Alert.alert('Error', 'Account or card number is required.');
+      return false;
+    }
+
+    if (selectedPayment === 'GCASH' || selectedPayment === 'BDO' || selectedPayment === 'CHINA BANK') {
+      if (!pin) {
+        Alert.alert('Error', 'PIN is required.');
+        return false;
+      }
+    }
+
+    if (selectedPayment === 'VISA') {
+      if (!expirationDate || !cvv) {
+        Alert.alert('Error', 'Expiration date and CVV are required for VISA.');
+        return false;
+      }
+    }
+
+    if (!amountPaid || parseFloat(amountPaid) < totalAmount) {
+      Alert.alert('Error', 'Amount paid is not sufficient or missing.');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmitPayment = () => {
+    if (validateInputs()) {
+      navigation.navigate('ConfirmPayment', {
+        paymentDetails: {
+          method: selectedPayment,
+          ...paymentDetails,
+        },
+        totalAmount,
+        amountPaid,
+      });
+    }
   };
 
   const renderPaymentForm = () => {
@@ -16,11 +84,15 @@ const PaymentPage = () => {
             <TextInput
               style={styles.input}
               placeholder="Enter your GCash number"
+              value={paymentDetails.number}
+              onChangeText={(text) => handleInputChange('number', text)}
             />
             <TextInput
               style={styles.input}
               placeholder="Enter your GCash PIN"
               secureTextEntry
+              value={paymentDetails.pin}
+              onChangeText={(text) => handleInputChange('pin', text)}
             />
           </View>
         );
@@ -30,11 +102,15 @@ const PaymentPage = () => {
             <TextInput
               style={styles.input}
               placeholder="Enter your BDO account number"
+              value={paymentDetails.number}
+              onChangeText={(text) => handleInputChange('number', text)}
             />
             <TextInput
               style={styles.input}
               placeholder="Enter your BDO account PIN"
               secureTextEntry
+              value={paymentDetails.pin}
+              onChangeText={(text) => handleInputChange('pin', text)}
             />
           </View>
         );
@@ -44,29 +120,39 @@ const PaymentPage = () => {
             <TextInput
               style={styles.input}
               placeholder="Enter your VISA card number"
+              value={paymentDetails.number}
+              onChangeText={(text) => handleInputChange('number', text)}
             />
             <TextInput
               style={styles.input}
               placeholder="Enter your card expiration date"
+              value={paymentDetails.expirationDate}
+              onChangeText={(text) => handleInputChange('expirationDate', text)}
             />
             <TextInput
               style={styles.input}
               placeholder="Enter your CVV"
               secureTextEntry
+              value={paymentDetails.cvv}
+              onChangeText={(text) => handleInputChange('cvv', text)}
             />
           </View>
         );
-      case 'CHINA_BANK':
+      case 'CHINA BANK':
         return (
           <View>
             <TextInput
               style={styles.input}
               placeholder="Enter your China Bank account number"
+              value={paymentDetails.number}
+              onChangeText={(text) => handleInputChange('number', text)}
             />
             <TextInput
               style={styles.input}
               placeholder="Enter your China Bank PIN"
               secureTextEntry
+              value={paymentDetails.pin}
+              onChangeText={(text) => handleInputChange('pin', text)}
             />
           </View>
         );
@@ -79,21 +165,21 @@ const PaymentPage = () => {
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Select Payment Method</Text>
 
-      {/* Payment options */}
+      {/* Payment Options */}
       <View style={styles.paymentOptions}>
-        {['GCASH', 'BDO', 'VISA', 'CHINA_BANK'].map((option) => (
+        {['GCASH', 'BDO', 'VISA', 'CHINA BANK'].map((option) => (
           <TouchableOpacity
             key={option}
             style={[
               styles.paymentButton,
-              selectedPayment === option && styles.selectedPaymentButton, // Highlight selected option
+              selectedPayment === option && styles.selectedPaymentButton,
             ]}
             onPress={() => handlePaymentOptionSelect(option)}
           >
             <Text
               style={[
                 styles.paymentButtonText,
-                selectedPayment === option && styles.selectedPaymentButtonText, // Highlight selected text
+                selectedPayment === option && styles.selectedPaymentButtonText,
               ]}
             >
               {option}
@@ -102,12 +188,28 @@ const PaymentPage = () => {
         ))}
       </View>
 
-      {/* Render corresponding form */}
+      {/* Display Total Amount */}
+      <View style={styles.totalAmountContainer}>
+        <Text style={styles.totalAmountText}>Total Amount: ₱{totalAmount}</Text>
+      </View>
+
+      {/* Amount User is Paying */}
+      <View style={styles.amountPaidContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter Amount You Are Paying"
+          keyboardType="numeric"
+          value={amountPaid}
+          onChangeText={handleAmountPaidChange}
+        />
+      </View>
+
+      {/* Render Payment Form */}
       {renderPaymentForm()}
 
       {/* Submit Button */}
       {selectedPayment && (
-        <TouchableOpacity style={styles.submitButton}>
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmitPayment}>
           <Text style={styles.submitButtonText}>Submit Payment</Text>
         </TouchableOpacity>
       )}
@@ -140,14 +242,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   selectedPaymentButton: {
-    backgroundColor: '#00C6AE', // Highlight selected button
+    backgroundColor: '#00C6AE',
   },
   paymentButtonText: {
     fontSize: 16,
     color: '#333',
   },
   selectedPaymentButtonText: {
-    color: '#fff', // Highlight selected text color
+    color: '#fff',
   },
   input: {
     backgroundColor: '#fff',
@@ -155,6 +257,18 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     borderRadius: 8,
     fontSize: 16,
+  },
+  totalAmountContainer: {
+    marginVertical: 16,
+    alignItems: 'center',
+  },
+  totalAmountText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  amountPaidContainer: {
+    marginBottom: 24,
   },
   submitButton: {
     backgroundColor: '#00C6AE',

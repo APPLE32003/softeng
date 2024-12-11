@@ -1,43 +1,86 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 
 export default function SignUpPage({ navigation }) {
+    const [passwordVisible, setPasswordVisible] = useState(false);
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Sign Up</Text>
             <View style={styles.form}>
+                {/* Full Name Input */}
                 <View style={styles.inputContainer}>
                     <FontAwesome name="user" size={20} color="#666" style={styles.icon} />
                     <TextInput placeholder="Full Name" style={styles.input} />
                 </View>
+
+                {/* Email Input */}
                 <View style={styles.inputContainer}>
                     <FontAwesome name="envelope" size={20} color="#666" style={styles.icon} />
-                    <TextInput placeholder="Email" style={styles.input} keyboardType="email-address" />
+                    <TextInput 
+                        placeholder="Email" 
+                        style={styles.input} 
+                        keyboardType="email-address" 
+                        autoCapitalize="none" 
+                    />
                 </View>
+
+                {/* Phone Number Input */}
                 <View style={styles.inputContainer}>
                     <FontAwesome name="phone" size={20} color="#666" style={styles.icon} />
-                    <TextInput placeholder="+63" style={styles.input} keyboardType="phone-pad" />
+                    <TextInput 
+                        placeholder="+63" 
+                        style={styles.input} 
+                        keyboardType="phone-pad" 
+                    />
                 </View>
+
+                {/* Password Input */}
                 <View style={styles.inputContainer}>
                     <FontAwesome name="lock" size={20} color="#666" style={styles.icon} />
-                    <TextInput placeholder="Password" style={styles.input} secureTextEntry />
+                    <TextInput 
+                        placeholder="Password" 
+                        style={styles.input} 
+                        secureTextEntry={!passwordVisible} 
+                    />
+                    <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
+                        <Ionicons 
+                            name={passwordVisible ? 'eye-off' : 'eye'} 
+                            size={20} 
+                            color="#666" 
+                        />
+                    </TouchableOpacity>
                 </View>
+
+                {/* Create Account Button */}
                 <TouchableOpacity 
                     style={styles.button}
-                    onPress={() => navigation.navigate('Welcome')} // Navigate to the Welcome page
+                    onPress={() => navigation.navigate('Welcome')}
+                    accessible={true}
+                    accessibilityLabel="Create Account"
                 >
                     <Text style={styles.buttonText}>Create Account</Text>
                 </TouchableOpacity>
+
+                {/* Social Sign-in Options */}
                 <Text style={styles.orText}>or sign in using</Text>
                 <View style={styles.socialButtons}>
-                    <TouchableOpacity style={[styles.socialButton, { backgroundColor: '#3b5998' }]} >
+                    <TouchableOpacity 
+                        style={[styles.socialButton, { backgroundColor: '#3b5998' }]}
+                        onPress={() => alert('Facebook sign-in')}
+                    >
                         <Text style={styles.socialButtonText}>Facebook</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.socialButton, { backgroundColor: '#db4437' }]}>
+                    <TouchableOpacity 
+                        style={[styles.socialButton, { backgroundColor: '#db4437' }]}
+                        onPress={() => alert('Google sign-in')}
+                    >
                         <Text style={styles.socialButtonText}>Google</Text>
                     </TouchableOpacity>
                 </View>
+
+                {/* Footer Text */}
                 <Text style={styles.footerText}>
                     By creating an account, you agree to our <Text style={styles.link}>Terms</Text>
                 </Text>
@@ -77,6 +120,7 @@ const styles = StyleSheet.create({
         borderBottomColor: '#ddd',
         marginBottom: 15,
         width: '100%',
+        paddingHorizontal: 5,
     },
     icon: {
         marginRight: 10,

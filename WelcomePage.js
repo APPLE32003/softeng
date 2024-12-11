@@ -5,12 +5,22 @@ export default function WelcomePage({ navigation }) {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Welcome!</Text>
-            <Text style={styles.message}>Your account has been successfully created.</Text>
+            <Text style={styles.message}>
+                Your account has been successfully created. Start exploring the app now!
+            </Text>
+
             <TouchableOpacity
                 style={styles.button}
-                onPress={() => navigation.navigate('SignUp')} // Navigate back to the Sign Up page
+                onPress={() => navigation.navigate('FindRoom')} // Navigate to the next logical page
             >
-                <Text style={styles.buttonText}>Go Back</Text>
+                <Text style={styles.buttonText}>Get Started</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={[styles.button, styles.secondaryButton]}
+                onPress={() => navigation.navigate('SignInPage')} // Option to return to login
+            >
+                <Text style={[styles.buttonText, styles.secondaryButtonText]}>Log In</Text>
             </TouchableOpacity>
         </View>
     );
@@ -33,6 +43,7 @@ const styles = StyleSheet.create({
     message: {
         fontSize: 18,
         color: '#fff',
+        textAlign: 'center',
         marginBottom: 30,
     },
     button: {
@@ -40,11 +51,20 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         borderRadius: 5,
         alignItems: 'center',
-        width: '100%',
+        width: '80%',
+        marginVertical: 10,
     },
     buttonText: {
         color: '#fff',
         fontSize: 18,
         fontWeight: 'bold',
+    },
+    secondaryButton: {
+        backgroundColor: 'transparent',
+        borderWidth: 1,
+        borderColor: '#fff',
+    },
+    secondaryButtonText: {
+        color: '#fff',
     },
 });
