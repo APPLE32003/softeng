@@ -79,7 +79,9 @@ export default function SignInPage({ navigation }) {
                 <Text style={styles.orText}>or sign up using</Text>
                 <View style={styles.socialButtons}>
                     <TouchableOpacity style={[styles.socialButton, { backgroundColor: '#3b5998' }]}>
-                        <Text style={styles.socialButtonText}>Facebook</Text>
+                    <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer">
+                    <div dir="auto" class="css-text-146c3p1 r-color-jwli3a r-fontSize-ubezar">Facebook</div>
+                    </a>
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.socialButton, { backgroundColor: '#db4437' }]}>
                         <Text style={styles.socialButtonText}>Google</Text>
@@ -102,7 +104,7 @@ export default function SignInPage({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#00d4ff',
+        backgroundColor: '0000',
         alignItems: 'center',
         justifyContent: 'center',
         padding: 20,
@@ -110,7 +112,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 32,
         fontWeight: 'bold',
-        color: '#fff',
+        color: '#f4f4f4',
         marginBottom: 20,
     },
     form: {

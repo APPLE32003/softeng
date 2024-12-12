@@ -13,9 +13,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Function to generate a random price between 700 and 6000
 const generateRandomPrice = () => Math.floor(Math.random() * (6000 - 700 + 1)) + 700;
 
-
-      
-
 const FindRoom = ({ navigation }) => {
   const [airConditioned, setAirConditioned] = useState(true);
   const [fanSelected, setFanSelected] = useState(false); // Track fan selection
@@ -114,7 +111,6 @@ const FindRoom = ({ navigation }) => {
       </TouchableOpacity>
     );
   };
-    
 
   // Function to sort the hotels by price (ascending or descending order)
   const sortHotelsByPrice = () => {
@@ -159,7 +155,6 @@ const FindRoom = ({ navigation }) => {
     const total = roomPrice + days * 300 + additionalCost;
     setTotalAmount(total); // Update the total amount state
   };
-  
 
   // Trigger calculation whenever the user changes check-in, check-out, or selection
   useEffect(() => {
@@ -251,15 +246,23 @@ const FindRoom = ({ navigation }) => {
 
       {/* Total Amount to Pay */}
       <Text style={styles.totalAmountText}>Total Amount: ₱{totalAmount}</Text>
-      
 
       {/* Pay Button */}
       <TouchableOpacity
-      style={styles.searchButton}
-      onPress={() => navigation.navigate('PaymentPage', { totalAmount })} // Pass totalAmount as a parameter
+        style={styles.searchButton}
+        onPress={() => navigation.navigate('PaymentPage', { totalAmount })} // Pass totalAmount as a parameter
       >
-      <Text style={styles.searchButtonText}>PAY</Text>
+        <Text style={styles.searchButtonText}>PAY</Text>
       </TouchableOpacity>
+
+      {/* Footer */}
+      <View style={styles.footer}>
+        <Text onPress={() => navigation.navigate('FindRoom')} style={styles.footerText}>Room</Text>
+        <Text onPress={() => navigation.navigate('UserProfile')} style={styles.footerText}>Profile</Text>
+        <Text onPress={() => navigation.navigate('SettingsPage')} style={styles.footerText}>Settings</Text>
+       <Text style={styles.footerText}>© 2024, All rights reserved.</Text>
+      </View>
+
     </ScrollView>
   );
 };
@@ -361,6 +364,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     marginVertical: 16,
+  },
+  footer: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#ddd',
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: 14,
+    color: '#333',
+    marginVertical: 4,
   },
 });
 

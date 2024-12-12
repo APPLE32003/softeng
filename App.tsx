@@ -27,6 +27,7 @@ import FindRoom from './FindRoom';
 import PaymentPage from './PaymentPage';
 import ConfirmPayment from './ConfirmPayment';
 import RatePage from './RatePage';
+import SettingsPage from './SettingsPage';
 
 
 // Create the Stack Navigator
@@ -81,8 +82,9 @@ function App() {
                     name="RatePage"
                     component={RatePage} />
 
-                
-
+                <Stack.Screen 
+                    name="Settings"
+                    component={SettingsPage} />
 
             </Stack.Navigator>
         </NavigationContainer>
